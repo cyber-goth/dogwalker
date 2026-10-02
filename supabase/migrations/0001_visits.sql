@@ -7,9 +7,9 @@ create table if not exists public.visits (
 );
 alter table public.visits enable row level security;
 
--- IMPORTANT: replace 'owner@example.com' with the real OWNER_EMAIL before running.
+-- IMPORTANT: this must match OWNER_EMAIL.
 create or replace function public.is_owner() returns boolean
-language sql stable as $$ select auth.jwt() ->> 'email' = 'owner@example.com' $$;
+language sql stable as $$ select auth.jwt() ->> 'email' = 'victor.isarov@gmail.com' $$;
 
 drop policy if exists "read for authenticated" on public.visits;
 create policy "read for authenticated" on public.visits
