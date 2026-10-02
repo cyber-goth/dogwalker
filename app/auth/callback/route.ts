@@ -27,7 +27,13 @@ export async function GET(req: NextRequest) {
     }
   );
   if (code) {
-    await sb.auth.exchangeCodeForSession(code);
+    const { error } = await sb.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("auth exchange failed:", error.message);
+      return NextResponse.redirect(
+        new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
+      );
+    }
   } else if (
     token_hash &&
     (type === "email" ||
@@ -36,7 +42,13 @@ export async function GET(req: NextRequest) {
       type === "recovery" ||
       type === "signup")
   ) {
-    await sb.auth.verifyOtp({ token_hash, type: type as "email" });
+    const { error } = await sb.auth.verifyOtp({ token_hash, type: type as "email" });
+    if (error) {
+      console.error("auth verify failed:", error.message);
+      return NextResponse.redirect(
+        new URL(`/login?error=${encodeURIComponent(error.message)}`, req.url)
+      );
+    }
   }
   return res;
 }

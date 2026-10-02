@@ -1,15 +1,28 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import HashSession from "@/components/HashSession";
 
 export default function Login() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const error = useSearchParams().get("error");
   return (
     <main className="mx-auto max-w-sm p-6">
       <HashSession />
       <h1 className="text-xl font-bold">Dogwalker login</h1>
+      {error && (
+        <p className="mt-2 text-sm text-red-600">Login failed: {error}</p>
+      )}
       {sent ? (
         <p>Check your email for the login link.</p>
       ) : (
