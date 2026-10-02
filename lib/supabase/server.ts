@@ -1,16 +1,11 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
-export async function supabaseServer() {
-  const store = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: { flowType: "pkce" },
-      cookies: {
-        get: (n: string) => store.get(n)?.value,
-      },
-    }
+// Server-only admin client (service-role key bypasses RLS).
+// Never import this from a client component. Role checks live in app/actions.ts.
+export function supabaseAdmin() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
   );
 }

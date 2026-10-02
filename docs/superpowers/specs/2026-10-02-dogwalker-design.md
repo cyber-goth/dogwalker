@@ -17,17 +17,14 @@ reads, Server Actions / Route Handlers for writes. One table, RLS enforced.
 `visits(id uuid pk default gen_random_uuid(), visit_date date unique not null, created_by uuid references auth.users, created_at timestamptz default now())`
 - One row = walker came that day. `UNIQUE(visit_date)` makes check-in idempotent.
 
-## Auth & permissions
-- Supabase Auth, email magic-link. **Signups disabled** — only 2 invited users (owner, walker).
-- Timezone: **Asia/Jerusalem** for all "today" / month-boundary logic (handles IST/IDT).
-- RLS:
-  - `SELECT`: any `authenticated` user (only 2 exist).
-  - `INSERT`: any `authenticated`, but `visit_date` must equal today in Asia/Jerusalem
-    (enforced in app + DB check constraint via helper function).
-  - `DELETE`: owner only (owner uid allowlist via `is_owner()` SQL function).
-  - Walker = add-only-today. Owner = add + delete any day (owner UI allows
-    toggling past days; walker UI only exposes "today" button).
-- Service-role key never in client. Anon key + URL via Vercel env vars. HTTPS by default.
+## Auth & permissions (v2: shared-token, no Supabase Auth)
+- Two long random tokens in server env: `OWNER_TOKEN`, `WALKER_TOKEN`.
+- `/login` takes a token → `loginAction` compares server-side → sets httpOnly
+  `dw_auth` cookie = `role.HMAC-SHA256(role, SESSION_SECRET)`.
+- Middleware bounces requests without a valid signed cookie to `/login`.
+- Writes: both roles can check in; only `owner` can toggle/delete (enforced in
+  Server Actions; DB accessed via server-only service-role key, never exposed).
+- Supabase Auth is unused (signups stay disabled, no invites needed).
 
 ## UI (mobile-first, 2 routes)
 - `/login` — magic-link form. Nothing else public. Middleware redirects anon to login.

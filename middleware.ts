@@ -1,30 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { COOKIE, verifySignedRole } from "@/lib/auth";
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
-  if (pathname.startsWith("/login") || pathname.startsWith("/auth"))
-    return NextResponse.next();
-  const res = NextResponse.next();
-  const sb = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: { flowType: "pkce" },
-      cookies: {
-        get: (n: string) => req.cookies.get(n)?.value,
-        set: (n: string, v: string, o: object) => {
-          res.cookies.set(n, v, o as never);
-        },
-        remove: (n: string, o: object) => {
-          res.cookies.set(n, "", o as never);
-        },
-      },
-    }
+  if (pathname.startsWith("/login")) return NextResponse.next();
+  const role = await verifySignedRole(
+    req.cookies.get(COOKIE)?.value,
+    process.env.SESSION_SECRET!
   );
-  const { data } = await sb.auth.getUser();
-  if (!data.user) return NextResponse.redirect(new URL("/login", req.url));
-  return res;
+  if (!role) return NextResponse.redirect(new URL("/login", req.url));
+  return NextResponse.next();
 }
 
 export const config = {
