@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import HashSession from "@/components/HashSession";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   return (
     <main className="mx-auto max-w-sm p-6">
+      <HashSession />
       <h1 className="text-xl font-bold">Dogwalker login</h1>
       {sent ? (
         <p>Check your email for the login link.</p>
@@ -17,7 +19,9 @@ export default function Login() {
             const sb = supabaseBrowser();
             await sb.auth.signInWithOtp({
               email,
-              options: { emailRedirectTo: window.location.origin },
+              options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback`,
+              },
             });
             setSent(true);
           }}

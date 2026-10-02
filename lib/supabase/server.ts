@@ -7,6 +7,7 @@ export async function supabaseServer() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      auth: { flowType: "pkce" },
       cookies: {
         get: (n: string) => store.get(n)?.value,
       },
